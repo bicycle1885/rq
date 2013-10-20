@@ -28,6 +28,8 @@ def parse_args():
     parser.add_argument('--sentry-dsn', action='store', default=None, metavar='URL', help='Report exceptions to this Sentry DSN')
     parser.add_argument('--pid', action='store', default=None,
                         help='Write the process ID number to a file at the specified path')
+    parser.add_argument('--logging-config', default=None, metavar='LOGCONFIG',
+                        help='Specify a configuration file about logging')
     parser.add_argument('queues', nargs='*', help='The queues to listen on (default: \'default\')')
 
     return parser.parse_args()
@@ -42,11 +44,13 @@ def setup_loghandlers_from_args(args):
     elif args.quiet:
         level = 'WARNING'
     else:
-        level = 'INFO'
-    setup_loghandlers(level)
+        level = None
+
+    setup_loghandlers(level=level, config_file=args.logging_config)
 
 
 def main():
+    print("Developing...")
     args = parse_args()
 
     if args.path:
@@ -76,6 +80,9 @@ def main():
     cleanup_ghosts()
     worker_class = import_attribute(args.worker_class)
 
+    logger.info("info")
+    logger.warning("warning")
+    logger.error("error")
     try:
         queues = list(map(Queue, args.queues))
         w = worker_class(queues, name=args.name)
